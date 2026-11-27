@@ -28,14 +28,14 @@ let ML=D.months.map(m=>lab(m,0));
 const tip=document.getElementById('tip');
 const f=v=>v.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
 function chart(name,v,h,wide,W0,Q,UM){
- const W=W0,H=h,l=wide?44:38,t=8+(14),w=W-l-4,nar=!wide&&w/v.length<22,b=nar?30:18,ph=H-b-t,max=Math.max(...v)||1;
+ const W=W0,H=h,l=wide?44:38,t=8+(14),w=W-l-4,nar=w/v.length<22,b=nar?30:18,ph=H-b-t,max=Math.max(...v)||1;
  const step=Math.pow(10,Math.floor(Math.log10(max)));let n=max/step;const nice=(n<=1.5?1.5:n<=2?2:n<=3?3:n<=5?5:10)*step;
  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} by month">`;
  [0,.5,1].forEach(k=>{const y=t+ph*(1-k);s+=`<line class="gl" x1="${l}" x2="${W-4}" y1="${y}" y2="${y}"/><text x="${l-4}" y="${y+3}" text-anchor="end">${Math.round(nice*k*100)/100}</text>`});
  const bw=w/v.length;
  v.forEach((x,i)=>{const bh=ph*x/nice,x0=l+i*bw+bw*(wide?.15:.04),bwid=bw*(wide?.7:.92);
   if(x>0)s+=`<rect class="bar" x="${x0}" y="${t+ph-bh}" width="${bwid}" height="${bh}" rx="3" data-t="${ML[i]}: ${f(x)} RON"/>`;
-  {const FS=wide?13:11,QF=wide?12:10,txt=f(x),need=txt.length*FS*.58+2,cx=x0+bwid/2,rot=!wide&&bwid<need;
+  {const FS=wide&&W>600?13:11,QF=wide&&W>600?12:10,txt=f(x),need=txt.length*FS*.58+2,cx=x0+bwid/2,rot=bwid<need;
    let qm=null,qh=0,q='';
    if(Q&&x>0){q=Q[i].toFixed(2);const n1=(q.length+UM.length+1)*QF*.58+2,n2=q.length*QF*.58+2;
     if(bwid>=n1){qm='one';qh=QF+5}else if(bwid>=n2){qm='two';qh=2*QF+6}else{qm='rot';qh=n1+6}
