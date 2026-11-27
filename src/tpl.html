@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monthly invoice expenses by type</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--card:#fff;--tx:#191919;--tx2:#666;--grid:#e6e6e6;--s1:#257de0;--bd:#e3e3e3}
+@media (prefers-color-scheme:dark){:root{--bg:#191919;--card:#191919;--tx:#efefef;--tx2:#9c9c9c;--grid:#333;--s1:#338ced;--bd:#333}}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,sans-serif;padding:24px}
+h1{font-size:20px;margin:0 0 4px}p.sub{color:var(--tx2);margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{border:1px solid var(--bd);border-radius:8px;padding:12px;background:var(--card)}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card.wide h2{min-height:0}.card.wide{grid-column:1/-1;margin-bottom:14px}
+.card h2{min-height:2.8em;font-size:13px;margin:0;font-weight:600}.card .meta{color:var(--tx2);font-size:12px;margin-bottom:6px}
+svg{width:100%;display:block}.card{display:flex;flex-direction:column}.card svg{margin-top:auto}text{fill:var(--tx2);font-size:10px}text.vl{fill:var(--tx);font-size:8.5px}text.vl.w{font-size:10px}text.vl.in{fill:#fff}text.vl.q{font-size:8.5px;font-weight:600}
+.bar{fill:var(--s1)}.bar:hover{opacity:.75}.avg{stroke:var(--tx);stroke-width:1.2;stroke-dasharray:5 3;opacity:.8;pointer-events:none}.gl{stroke:var(--grid);stroke-width:1}
+#tip{position:fixed;pointer-events:none;background:var(--tx);color:var(--bg);padding:4px 8px;border-radius:4px;font-size:12px;display:none;z-index:9}
+.cells{display:grid;grid-template-columns:repeat(12,1fr);margin:4px 0 0 4.4%;width:95.2%}
+.cell{padding:0 3px;font-size:11px;line-height:1.3;border-left:1px solid var(--grid);overflow-wrap:anywhere}
+.cell b{display:block;color:var(--tx2);font-weight:600}.it{margin-top:4px}.it span{color:var(--tx2)}.none{color:var(--tx2)}
+@media(max-width:900px){.cells{grid-template-columns:repeat(2,1fr);margin:0;width:100%}}
+</style></head><body>
+<h1>Monthly invoice expenses by type</h1>
+<p class="sub">Facturi Immo Lila SRL, emise Dec 2025 – Nov 2026. Sume în RON cu TVA. Serviciile administrative sunt pe luna facturii; toate cheltuielile de întreținere sunt pe luna precedentă emiterii (luna consumului). „Total factura” e pe luna emiterii. Fiecare grafic are scara lui.</p>
+<div id="tot"></div><div class="grid" id="g"></div><div id="tip"></div>
+<script>
+const D=__DATA__;
+const lab=(m,sh)=>{let[y,mo]=m.split('-').map(Number);if(sh){mo--;if(mo<1){mo=12;y--}}return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo-1]+" '"+String(y).slice(2)};
+let ML=D.months.map(m=>lab(m,0));
+const tip=document.getElementById('tip');
+const f=v=>v.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+function chart(name,v,h,wide,W0,Q,UM){
+ const W=W0,H=h,l=wide?44:38,t=8+(14),w=W-l-4,nar=!wide&&w/v.length<22,b=nar?30:18,ph=H-b-t,max=Math.max(...v)||1;
+ const step=Math.pow(10,Math.floor(Math.log10(max)));let n=max/step;const nice=(n<=1.5?1.5:n<=2?2:n<=3?3:n<=5?5:10)*step;
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} by month">`;
+ [0,.5,1].forEach(k=>{const y=t+ph*(1-k);s+=`<line class="gl" x1="${l}" x2="${W-4}" y1="${y}" y2="${y}"/><text x="${l-4}" y="${y+3}" text-anchor="end">${Math.round(nice*k*100)/100}</text>`});
+ const bw=w/v.length;
+ v.forEach((x,i)=>{const bh=ph*x/nice,x0=l+i*bw+bw*(wide?.15:.04),bwid=bw*(wide?.7:.92);
+  if(x>0)s+=`<rect class="bar" x="${x0}" y="${t+ph-bh}" width="${bwid}" height="${bh}" rx="3" data-t="${ML[i]}: ${f(x)} RON"/>`;
+  {const FS=wide?13:11,QF=wide?12:10,txt=f(x),need=txt.length*FS*.58+2,cx=x0+bwid/2,rot=!wide&&bwid<need;
+   let qm=null,qh=0,q='';
+   if(Q&&x>0){q=Q[i].toFixed(2);const n1=(q.length+UM.length+1)*QF*.58+2,n2=q.length*QF*.58+2;
+    if(bwid>=n1){qm='one';qh=QF+5}else if(bwid>=n2){qm='two';qh=2*QF+6}else{qm='rot';qh=n1+6}
+    if(bh<qh)qm=null}
+   if(x>0){const vh=rot?need+6:FS+5,inside=bh>=vh+(qm?qh+2:0),cy=inside?(rot?t+ph-bh+4:t+ph-bh+FS+1):t+ph-bh-3;
+    s+=rot?`<text class="vl${inside?' in':''}" style="font-size:${FS}px" transform="translate(${cx+4},${cy}) rotate(-90)" text-anchor="${inside?'end':'start'}">${txt}</text>`:`<text class="vl${inside?' in':''}" style="font-size:${FS}px" x="${cx}" y="${cy}" text-anchor="middle">${txt}</text>`}
+   if(qm){const st=`class="vl in q" style="font-size:${QF}px"`;
+    if(qm==='one')s+=`<text ${st} x="${cx}" y="${t+ph-4}" text-anchor="middle">${q} ${UM}</text>`;
+    else if(qm==='two')s+=`<text ${st} x="${cx}" y="${t+ph-QF-3}" text-anchor="middle">${q}</text><text ${st} x="${cx}" y="${t+ph-3}" text-anchor="middle">${UM}</text>`;
+    else s+=`<text ${st} transform="translate(${cx+3},${t+ph-4}) rotate(-90)">${q} ${UM}</text>`}}
+  s+=`<rect x="${l+i*bw}" y="${t}" width="${bw}" height="${ph}" fill="transparent" data-t="${ML[i]}: ${f(x)} RON"/>`;
+  if(wide||i%2==0||true)s+=nar?`<text transform="translate(${x0+bwid/2+3},${H-b+5}) rotate(-90)" text-anchor="end">${ML[i].slice(0,3)}</text>`:`<text x="${x0+bw*.35}" y="${H-5}" text-anchor="middle">${ML[i].slice(0,3)}</text>`});
+ const av=v.reduce((a,b)=>a+b,0)/v.length,ya=t+ph-ph*av/nice;
+ s+=`<line class="avg" x1="${l}" x2="${W-4}" y1="${ya}" y2="${ya}"><title>Medie: ${f(av)} RON</title></line>`;
+ return s+'</svg>'}
+function card(name,v,h,wide){const sum=v.reduce((a,b)=>a+b,0),k=v.filter(x=>x>0).length,avg=f(sum/v.length)+' RON/lună (12 luni)'+(k<v.length?' · '+f(sum/k)+' RON pe lunile facturate':'');
+ return `<div class="card${wide?' wide':''}"><h2>${name}</h2><div class="meta">Total ${f(sum)} RON · facturat în ${k} din ${v.length} luni<br>Medie (linia punctată): ${avg}</div>${chart(name,v,h,wide)}</div>`}
+document.getElementById('tot').innerHTML=card('Total factura',D.tot,200,true);
+function itemCard(c){const sum=c.v.reduce((a,b)=>a+b,0),k=c.v.filter(x=>x>0).length,avg=f(sum/c.v.length)+' RON/lună (12 luni)'+(k<c.v.length?' · '+f(sum/k)+' RON pe lunile facturate':'');
+ const cells=c.items.map((it,i)=>`<div class="cell"><b>${ML[i]}</b>${it.map(x=>`<div class="it">${x[0]}${x[1]==null?'':`<br><span>${f(x[1])} RON</span>`}</div>`).join('')||'<div class="it none">–</div>'}</div>`).join('');
+ return `<div class="card wide"><h2>${c.name}</h2><div class="meta">Total ${f(sum)} RON · ${c.note}<br>Medie (linia punctată): ${avg}${c.qavg?`<br>Cantitate medie: ${c.qavg}`:''}</div>${chart(c.name,c.v,170,true)}<div class="cells">${cells}</div></div>`}
+document.getElementById('g').innerHTML=D.cats.map(c=>c.items?itemCard(c):card(c.name,c.v,190,false)).join('');
+document.addEventListener('mousemove',e=>{const t=e.target.dataset&&e.target.dataset.t;if(t){tip.textContent=t;tip.style.display='block';tip.style.left=e.clientX+12+'px';tip.style.top=e.clientY+12+'px'}else tip.style.display='none'});
+</script></body></html>
