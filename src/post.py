@@ -11,6 +11,7 @@ def total(name,parts):
     C[name]=dict(name=name,v=[round(sum(C[p]['v'][i] for p in parts),2) for i in range(len(months))])
 total('Total lift',['Curent lift','Mentenanta lift','Responsabil cu Supravegherea si Verificarea Tehnica a Instalatiilor - ascensor','Autorizare anuala ascensor'])
 total('Total curent comun',['Curent casa scarii','Consum energie electrica iluminat public'])
+total('Total Diverse',['Reparatie','Refacturare servicii','Dezinsectie si deratizare spatii comune','Statii de intoxicare rozatoare spatii comune','Ingrasamant spatii verzi','Materiale nestocate','Servicii de deszapezire stradala sezon de iarna','Material antiderapant'])
 total('Total statie dedurizare',['Mentenanta statie de dedurizare','Mentenanta centrala termica'])
 total('Total servicii administrative',['Servicii administrative – suprafata utila','Servicii administrative – terasa'])
 # lists: text after the last dash
@@ -46,7 +47,7 @@ layout=[['Total factura'],
  ['Mentenanta statie de dedurizare','Mentenanta centrala termica','Total statie dedurizare'],
  ['Reparatie'],['Refacturare servicii'],
  ['Dezinsectie si deratizare spatii comune','Statii de intoxicare rozatoare spatii comune','Ingrasamant spatii verzi','Materiale nestocate'],
- ['Servicii de deszapezire stradala sezon de iarna','Material antiderapant']]
+ ['Servicii de deszapezire stradala sezon de iarna','Material antiderapant','Total Diverse']]
 used=[n for r in layout for n in r]
 missing=[n for n in C if n not in used]; print('missing',missing)
 assert len(used)==len(set(used)),'dup'
